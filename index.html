@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PF Hourglass" />
+  <meta name="theme-color" content="#1e0b36" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%234b148c'/%3E%3Ctext x='90' y='118' font-size='88' text-anchor='middle'%3E%F0%9F%92%AA%3C/text%3E%3C/svg%3E" />
+  <title>PF Black Card — Hourglass & Dopamine</title>
+  <style>
+    :root {
+      --bg: #0f081c;
+      --card: #1a102e;
+      --card-2: #241640;
+      --border: rgba(255,255,255,0.1);
+      --purple: #7c3aed;
+      --purple-light: #a78bfa;
+      --gold: #facc15;
+      --gold-dim: rgba(250, 204, 21, 0.15);
+      --green: #34d399;
+      --red: #fb7185;
+      --text: #f8fafc;
+      --muted: #a1a1aa;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      padding-top: env(safe-area-inset-top);
+      line-height: 1.45;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(15, 8, 28, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+    .badge {
+      background: var(--gold);
+      color: #1e0b36;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 3px 7px;
+      border-radius: 99px;
+      text-transform: uppercase;
+    }
+    .reset-btn {
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    main { padding: 16px; max-width: 560px; margin: 0 auto; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .card h2 { margin: 0 0 6px; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+    .card p.sub { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--purple);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-gold { background: var(--gold); color: #1e0b36; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-sm { padding: 8px 12px; font-size: 13px; width: auto; border-radius: 10px; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row > * { flex: 1; }
+
+    /* Timer */
+    .timer-display {
+      font-size: 46px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      margin: 10px 0;
+      color: var(--gold);
+    }
+    .preset-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+    .pill {
+      padding: 6px 14px;
+      border-radius: 99px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .pill.active { background: var(--purple); color: #fff; border-color: var(--purple-light); }
+
+    /* Coin */
+    .coin-result {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      display: none;
+    }
+    .coin-result.show { display: block; }
+    .coin-result.heads { border-color: var(--gold); background: var(--gold-dim); }
+    .coin-result.tails { border-color: var(--purple-light); }
+    .coin-title { font-weight: 800; font-size: 15px; margin-bottom: 4px; }
+
+    /* Checklist */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .check-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .check-item input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--gold);
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .check-item.done span { text-decoration: line-through; color: var(--muted); }
+    .check-item strong { display: block; font-size: 14px; }
+    .check-item small { color: var(--muted); font-size: 12px; display: block; }
+
+    /* Day selector */
+    .day-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .day-tab {
+      flex: 1;
+      padding: 10px 6px;
+      text-align: center;
+      border-radius: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .day-tab.active { background: var(--purple); color: #fff; border-color: var(--purple-light); }
+
+    /* Exercise card */
+    .ex-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .ex-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .ex-name { font-weight: 700; font-size: 15px; }
+    .ex-meta { font-size: 12px; color: var(--gold); font-weight: 600; }
+    .ex-why { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .inputs input, select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 8px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+    }
+    .log-row { display: flex; gap: 8px; }
+    .log-row select { flex: 1.4; text-align: left; font-size: 13px; }
+    .log-row button { flex: 1; }
+    .last-log { font-size: 12px; color: var(--green); margin-top: 8px; font-weight: 600; }
+
+    /* Rest bar */
+    .rest-bar {
+      background: var(--card-2);
+      border: 1px solid var(--purple-light);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .rest-time { font-size: 22px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; min-width: 58px; }
+
+    /* Dopamine banner */
+    .dopa-banner {
+      background: linear-gradient(135deg, rgba(124,58,237,0.35), rgba(250,204,21,0.18));
+      border: 1px solid rgba(250,204,21,0.35);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .dopa-banner strong { color: var(--gold); display: block; margin-bottom: 2px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    /* Breathing circle */
+    .breath-wrap { display: flex; flex-direction: column; align-items: center; padding: 14px 0; }
+    .breath-circle {
+      width: 132px;
+      height: 132px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--purple-light), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 0 30px rgba(124,58,237,0.5);
+      transition: transform 4s ease-in-out;
+      margin-bottom: 14px;
+    }
+    .breath-circle.inhale { transform: scale(1.25); transition-duration: 4s; }
+    .breath-circle.exhale { transform: scale(0.85); transition-duration: 6s; }
+
+    /* History */
+    .log-entry {
+      padding: 10px 12px;
+      background: var(--card-2);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      border-left: 3px solid var(--gold);
+    }
+    .log-entry .date { font-size: 11px; color: var(--muted); }
+
+    /* Bottom Nav */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(20, 11, 36, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+      z-index: 30;
+    }
+    nav button {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    nav button .ico { font-size: 20px; }
+    nav button.active { color: var(--gold); }
+    .toast {
+      position: fixed;
+      top: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--green);
+      color: #06281c;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 99px;
+      display: none;
+      z-index: 50;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">PF Hourglass <span class="badge">Black Card</span></div>
+    <button class="reset-btn" onclick="resetToday()">Reset Today</button>
+  </header>
+
+  <div class="toast" id="toast">Saved!</div>
+
+  <main>
+    <!-- LAUNCH TAB -->
+    <section id="tab-launch" class="tab-panel active">
+      <div class="card">
+        <h2>🅿️ 1. Parking Lot Boredom Buffer</h2>
+        <p class="sub">Phone on Do Not Disturb. No scrolling, no music yet. Let mild boredom lower your baseline so your brain craves movement.</p>
+        <div class="preset-row">
+          <button class="pill active" id="p5" onclick="setBuffer(5)">5 Min</button>
+          <button class="pill" id="p10" onclick="setBuffer(10)">10 Min</button>
+        </div>
+        <div class="timer-display" id="bufferDisplay">05:00</div>
+        <div class="row">
+          <button class="btn btn-gold" id="bufferBtn" onclick="toggleBuffer()">Start Buffer</button>
+          <button class="btn btn-outline" onclick="resetBuffer()">Reset</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🪙 2. Front Desk Coin Flip</h2>
+        <p class="sub">Unpredictable rewards keep dopamine anticipation high. Flip right before scanning your PF barcode.</p>
+        <button class="btn" onclick="flipCoin()">Flip Coin for Today's Mode</button>
+        <div id="coinResult" class="coin-result">
+          <div class="coin-title" id="coinTitle"></div>
+          <div id="coinDesc" style="font-size:13px;color:var(--text);"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔥 3. 5-Min Glycogen-Sparing Warm-Up</h2>
+        <p class="sub">Save the 15-min StairMaster for AFTER lifting so your glutes stay fresh for heavy volume.</p>
+        <div id="warmupList"></div>
+      </div>
+    </section>
+
+    <!-- WORKOUT TAB -->
+    <section id="tab-workout" class="tab-panel">
+      <div class="day-tabs">
+        <button class="day-tab active" onclick="selectDay(0)" id="dtab0">Day 1<br>Glutes & Hips</button>
+        <button class="day-tab" onclick="selectDay(1)" id="dtab1">Day 2<br>Back & Arms</button>
+        <button class="day-tab" onclick="selectDay(2)" id="dtab2">Day 3<br>Legs & Glutes</button>
+      </div>
+
+      <div class="dopa-banner" onclick="cycleReframe()">
+        <strong>⚡ Dopamine Effort Cue (Tap for next)</strong>
+        <span id="reframeText">When the last 2 reps burn, that friction is the exact signal triggering glute & curve growth.</span>
+      </div>
+
+      <div class="rest-bar">
+        <div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;">REST TIMER</div>
+          <div class="rest-time" id="restDisplay">01:30</div>
+        </div>
+        <div class="row" style="flex:0 0 auto; gap:6px;">
+          <button class="pill" onclick="startRest(60)">60s</button>
+          <button class="pill" onclick="startRest(90)">90s</button>
+          <button class="pill" onclick="startRest(120)">120s</button>
+          <button class="pill" onclick="stopRest()">✕</button>
+        </div>
+      </div>
+
+      <div id="exerciseList"></div>
+
+      <div class="card">
+        <h2>🪜 Post-Lift Zone 2 Finisher</h2>
+        <p class="sub" id="finisherDesc"></p>
+        <label class="check-item" id="finisherCheckWrap">
+          <input type="checkbox" id="finisherCheck" onchange="toggleFinisher()" />
+          <div>
+            <strong>15-Min StairMaster / Incline Walk Completed</strong>
+            <small>Steady pace where you can speak in short sentences — burns fat without draining muscle recovery.</small>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- RECOVERY TAB -->
+    <section id="tab-recovery" class="tab-panel">
+      <div class="card">
+        <h2>🌬️ 1. 4–6 Breathing Downregulation</h2>
+        <p class="sub">2 minutes of longer exhales activates your vagus nerve, drops cortisol, and kickstarts muscle repair.</p>
+        <div class="breath-wrap">
+          <div class="breath-circle" id="breathCircle">Ready</div>
+          <button class="btn btn-sm" id="breathBtn" onclick="toggleBreath()">Start 4–6 Pacer</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🧘 2. Post-Lift Static Stretches (30–45s each)</h2>
+        <div class="preset-row" style="justify-content:flex-start;">
+          <button class="pill active" id="stLow" onclick="setStretch('lower')">Lower Days (1 & 3)</button>
+          <button class="pill" id="stUp" onclick="setStretch('upper')">Upper Day (2)</button>
+        </div>
+        <div id="stretchList"></div>
+      </div>
+
+      <div class="card" id="spaGateCard">
+        <h2>✨ 3. Black Card Spa Gate</h2>
+        <p class="sub" id="spaGateText">Flip your Front Desk Coin on the Launch tab to see if the HydroMassage / Massage Chair is unlocked today.</p>
+      </div>
+    </section>
+
+    <!-- PROGRESS TAB -->
+    <section id="tab-progress" class="tab-panel">
+      <div class="card">
+        <h2>🎯 Hourglass Targets</h2>
+        <p class="sub" style="margin-bottom:0;color:var(--text);">
+          <strong>Priority:</strong> Flat, strong deep core + maximum glute, hip &amp; thigh volume + carved back &amp; strong arms.<br/>
+          <span style="color:var(--gold);font-weight:700;">Progression Rule:</span> When the top rep range feels smooth, increase weight 5–10 lbs next session.
+        </p>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h2 style="margin:0;">📈 Logged Lifts</h2>
+          <button class="btn btn-gold btn-sm" onclick="copyLog()">Copy for Notes</button>
+        </div>
+        <div id="historyList"></div>
+      </div>
+    </section>
+  </main>
+
+  <nav>
+    <button class="active" onclick="switchTab('launch', this)"><span class="ico">🚀</span>Launch</button>
+    <button onclick="switchTab('workout', this)"><span class="ico">🏋️</span>Workout</button>
+    <button onclick="switchTab('recovery', this)"><span class="ico">🧘</span>Recovery</button>
+    <button onclick="switchTab('progress', this)"><span class="ico">📈</span>Progress</button>
+  </nav>
+
+  <script>
+    const DAYS = [
+      {
+        title: "Day 1: Glute Volume, Hip Shelf & Deep Core",
+        finisher: "15-min StairMaster at a steady Zone 2 pace.",
+        exercises: [
+          { name: "Smith Machine Hip Thrusts", target: "3 × 8–12", why: "#1 builder for butt volume." },
+          { name: "Seated Hip Abduction", target: "3 × 15–20", why: "Lean slightly forward to build the outer hip shelf." },
+          { name: "High & Wide Leg Press", target: "3 × 10–12", why: "High/wide feet shift focus to glutes & thigh fullness." },
+          { name: "Cable Glute Kickbacks", target: "3 × 12–15/leg", why: "Targeted upper & side glute shaping." },
+          { name: "Dead Bugs", target: "3 × 8–10/side", why: "Flattens & tightens deep core without thickening waist." }
+        ]
+      },
+      {
+        title: "Day 2: Back Carve, Strong Arms & Snatched Core",
+        finisher: "15-min StairMaster OR Incline Walk (10–12% incline, 2.5–3.0 speed).",
+        exercises: [
+          { name: "Wide-Grip Lat Pulldowns", target: "3 × 10–12", why: "Carves the V-taper so your waist looks smaller." },
+          { name: "Seated Cable Rows", target: "3 × 10–12", why: "Tones and defines the center of your back." },
+          { name: "Dumbbell Lateral Raises", target: "3 × 12–15", why: "Subtle shoulder cap to balance your hourglass ratio." },
+          { name: "Cable Bicep Curls + Tricep Pushdowns", target: "3 × 10–12", why: "Superset for arm strength & toned back of arms." },
+          { name: "Forearm Planks", target: "3 × 30–45s", why: "Pull belly button gently inward for deep core strength." }
+        ]
+      },
+      {
+        title: "Day 3: Glute-Hamstring Tie-In, Thighs & Core",
+        finisher: "15-min StairMaster (or swap for Incline Walk for variety).",
+        exercises: [
+          { name: "Smith Machine or DB RDLs", target: "3 × 8–10", why: "Builds the under-butt tie-in & back of thighs." },
+          { name: "Bulgarian Split Squats", target: "3 × 8–10/leg", why: "Deep glute stretch & unilateral thigh volume." },
+          { name: "Seated or Lying Leg Curl", target: "3 × 10–12", why: "Sculpts the back of the thighs." },
+          { name: "Seated Hip Abduction", target: "3 × 15–20", why: "2×/week outer hip work accelerates hip volume." },
+          { name: "Dead Bugs or Captain's Chair", target: "3 × 10–12", why: "Deep core control & flat tummy support." }
+        ]
+      }
+    ];
+
+    const WARMUPS = [
+      { id: "w1", title: "5-Min Light StairMaster (Lvl 3–4) or Incline Walk", sub: "Just enough to raise body temperature without draining leg strength." },
+      { id: "w2", title: "2-Min Dynamic Prep", sub: "10 leg swings/side, 10 bodyweight glute bridges, 10 arm circles (no static holds yet)." },
+      { id: "w3", title: "1 Light Warm-Up Set (50% weight)", sub: "Prime your nervous system on Exercise #1 before loading up." },
+      { id: "w4", title: "Optional (Heads Days): 12-Min Total Body Enhancement", sub: "Red light + vibration plate boosts circulation without fatiguing your lifts." }
+    ];
+
+    const STRETCHES = {
+      lower: [
+        { id: "sl1", title: "Kneeling Hip Flexor Stretch", sub: "Hold 30–45s each side — relieves tight hips from StairMaster." },
+        { id: "sl2", title: "Figure-4 / Pigeon Glute Stretch", sub: "Hold 30–45s each side — releases deep glute tension." },
+        { id: "sl3", title: "Standing Hamstring Stretch", sub: "Hold 30–45s each side — lengthens the back of the legs." }
+      ],
+      upper: [
+        { id: "su1", title: "Child's Pose (Lat Stretch)", sub: "Hold 45s — opens up your lats and upper back." },
+        { id: "su2", title: "Doorway / Wall Chest Stretch", sub: "Hold 30–45s each side — improves posture." },
+        { id: "su3", title: "Overhead Tricep Stretch", sub: "Hold 30s each arm — releases arm tightness." }
+      ]
+    };
+
+    const REFRAMES = [
+      "When the last 2 reps burn, that friction is the exact signal triggering glute & curve growth.",
+      "Log each lift right away — crossing off a micro-win releases a fresh hit of momentum dopamine.",
+      "Every slow, controlled rep builds the shape. Don't rush to the finish line; own the effort.",
+      "Discipline on Tails days is what keeps your craving razor-sharp on Heads days."
+    ];
+
+    let state = JSON.parse(localStorage.getItem("pf_hourglass_v2") || "{}");
+    if (!state.checks) state.checks = {};
+    if (!state.logs) state.logs = [];
+    if (state.day === undefined) state.day = 0;
+    if (!state.stretchMode) state.stretchMode = "lower";
+    let reframeIdx = 0;
+
+    function save() { localStorage.setItem("pf_hourglass_v2", JSON.stringify(state)); }
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      setTimeout(() => t.style.display = "none", 1800);
+    }
+
+    function playChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(587.33, ctx.currentTime);
+        o.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18);
+        g.gain.setValueAtTime(0.18, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(); o.stop(ctx.currentTime + 0.5);
+      } catch(e) {}
+    }
+
+    function switchTab(id, btn) {
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      document.getElementById("tab-" + id).classList.add("active");
+      document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      if (id === "progress") renderHistory();
+      if (id === "recovery") updateSpaGate();
+    }
+
+    // Buffer Timer
+    let bufferSec = 300, bufferInt = null;
+    function setBuffer(min) {
+      stopBuffer();
+      bufferSec = min * 60;
+      document.getElementById("p5").classList.toggle("active", min === 5);
+      document.getElementById("p10").classList.toggle("active", min === 10);
+      renderBuffer();
+    }
+    function renderBuffer() {
+      const m = String(Math.floor(bufferSec / 60)).padStart(2, "0");
+      const s = String(bufferSec % 60).padStart(2, "0");
+      document.getElementById("bufferDisplay").textContent = `${m}:${s}`;
+    }
+    function toggleBuffer() {
+      if (bufferInt) { stopBuffer(); return; }
+      document.getElementById("bufferBtn").textContent = "Pause";
+      bufferInt = setInterval(() => {
+        if (bufferSec > 0) { bufferSec--; renderBuffer(); }
+        else { stopBuffer(); playChime(); toast("Buffer done — walk in!"); }
+      }, 1000);
+    }
+    function stopBuffer() {
+      clearInterval(bufferInt); bufferInt = null;
+      document.getElementById("bufferBtn").textContent = "Start Buffer";
+    }
+    function resetBuffer() {
+      const is10 = document.getElementById("p10").classList.contains("active");
+      setBuffer(is10 ? 10 : 5);
+    }
+
+    // Coin Flip
+    function flipCoin() {
+      state.coin = Math.random() < 0.5 ? "heads" : "tails";
+      save();
+      playChime();
+      renderCoin();
+      updateSpaGate();
+    }
+    function renderCoin() {
+      const box = document.getElementById("coinResult");
+      if (!state.coin) { box.className = "coin-result"; return; }
+      box.className = "coin-result show " + state.coin;
+      if (state.coin === "heads") {
+        document.getElementById("coinTitle").textContent = "👑 HEADS — Full Black Card Mode";
+        document.getElementById("coinDesc").textContent = "Playlist unlocks ONLY when you touch Machine #1 + 50% off cooler drink + HydroMassage / Massage Chair unlocked after your last set.";
+      } else {
+        document.getElementById("coinTitle").textContent = "⚡ TAILS — Bare-Bones Discipline Mode";
+        document.getElementById("coinDesc").textContent = "Water only, no music (or plain podcast), skip the Black Card Spa today. Keeps your dopamine receptors sharp.";
+      }
+    }
+
+    // Warmup Checklist
+    function renderWarmups() {
+      const wrap = document.getElementById("warmupList");
+      wrap.innerHTML = WARMUPS.map(w => `
+        <label class="check-item ${state.checks[w.id] ? 'done' : ''}">
+          <input type="checkbox" ${state.checks[w.id] ? 'checked' : ''} onchange="toggleCheck('${w.id}')" />
+          <div><span><strong>${w.title}</strong><small>${w.sub}</small></span></div>
+        </label>
+      `).join("");
+    }
+    function toggleCheck(id) {
+      state.checks[id] = !state.checks[id];
+      save();
+      renderWarmups();
+      renderStretches();
+    }
+
+    // Workout
+    function selectDay(idx) {
+      state.day = idx;
+      save();
+      [0,1,2].forEach(i => document.getElementById("dtab"+i).classList.toggle("active", i === idx));
+      renderWorkout();
+    }
+    function cycleReframe() {
+      reframeIdx = (reframeIdx + 1) % REFRAMES.length;
+      document.getElementById("reframeText").textContent = REFRAMES[reframeIdx];
+    }
+    function renderWorkout() {
+      const d = DAYS[state.day];
+      document.getElementById("finisherDesc").textContent = d.finisher;
+      const finKey = "fin_" + state.day;
+      document.getElementById("finisherCheck").checked = !!state.checks[finKey];
+      document.getElementById("finisherCheckWrap").classList.toggle("done", !!state.checks[finKey]);
+
+      const wrap = document.getElementById("exerciseList");
+      wrap.innerHTML = d.exercises.map((ex, i) => {
+        const last = state.logs.find(l => l.exercise === ex.name);
+        const lastHtml = last ? `<div class="last-log">Last: ${last.weight} lbs × ${last.reps} reps × ${last.sets} sets (${last.feel}) — ${last.date}</div>` : "";
+        return `
+          <div class="ex-card">
+            <div class="ex-head">
+              <div class="ex-name">${i+1}. ${ex.name}</div>
+              <div class="ex-meta">${ex.target}</div>
+            </div>
+            <div class="ex-why">${ex.why}</div>
+            <div class="inputs">
+              <input type="number" inputmode="decimal" id="w_${i}" placeholder="lbs" value="${last ? last.weight : ''}" />
+              <input type="number" inputmode="numeric" id="r_${i}" placeholder="reps" value="${last ? last.reps : ''}" />
+              <input type="number" inputmode="numeric" id="s_${i}" placeholder="sets" value="${last ? last.sets : '3'}" />
+            </div>
+            <div class="log-row">
+              <select id="f_${i}">
+                <option value="✅ On Target">✅ On Target</option>
+                <option value="⬆️ Go Up Next">⬆️ Go Up Next</option>
+                <option value="🔥 Hold Weight">🔥 Hold Weight</option>
+              </select>
+              <button class="btn btn-gold btn-sm" onclick="logExercise(${i})">Log Lift</button>
+            </div>
+            ${lastHtml}
+          </div>
+        `;
+      }).join("");
+    }
+    function logExercise(i) {
+      const ex = DAYS[state.day].exercises[i];
+      const weight = document.getElementById("w_"+i).value || "0";
+      const reps = document.getElementById("r_"+i).value || "0";
+      const sets = document.getElementById("s_"+i).value || "3";
+      const feel = document.getElementById("f_"+i).value;
+      const date = new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      state.logs.unshift({ date, day: "Day " + (state.day + 1), exercise: ex.name, weight, reps, sets, feel });
+      save();
+      renderWorkout();
+      playChime();
+      toast("Logged! Micro-win unlocked");
+    }
+    function toggleFinisher() {
+      const finKey = "fin_" + state.day;
+      state.checks[finKey] = document.getElementById("finisherCheck").checked;
+      save();
+      renderWorkout();
+    }
+
+    // Rest Timer
+    let restSec = 90, restInt = null;
+    function startRest(sec) {
+      stopRest();
+      restSec = sec;
+      renderRest();
+      restInt = setInterval(() => {
+        if (restSec > 0) { restSec--; renderRest(); }
+        else { stopRest(); playChime(); toast("Rest over — hit your next set!"); }
+      }, 1000);
+    }
+    function stopRest() { clearInterval(restInt); restInt = null; }
+    function renderRest() {
+      const m = String(Math.floor(restSec / 60)).padStart(2, "0");
+      const s = String(restSec % 60).padStart(2, "0");
+      document.getElementById("restDisplay").textContent = `${m}:${s}`;
+    }
+
+    // Breathing Pacer
+    let breathOn = false, breathTimer = null;
+    function toggleBreath() {
+      const circle = document.getElementById("breathCircle");
+      const btn = document.getElementById("breathBtn");
+      if (breathOn) {
+        breathOn = false;
+        clearTimeout(breathTimer);
+        circle.className = "breath-circle";
+        circle.textContent = "Ready";
+        btn.textContent = "Start 4–6 Pacer";
+        return;
+      }
+      breathOn = true;
+      btn.textContent = "Stop Pacer";
+      function cycle() {
+        if (!breathOn) return;
+        circle.className = "breath-circle inhale";
+        circle.textContent = "Inhale (4s)";
+        breathTimer = setTimeout(() => {
+          if (!breathOn) return;
+          circle.className = "breath-circle exhale";
+          circle.textContent = "Exhale (6s)";
+          breathTimer = setTimeout(cycle, 6000);
+        }, 4000);
+      }
+      cycle();
+    }
+
+    // Stretches & Spa Gate
+    function setStretch(mode) {
+      state.stretchMode = mode;
+      save();
+      document.getElementById("stLow").classList.toggle("active", mode === "lower");
+      document.getElementById("stUp").classList.toggle("active", mode === "upper");
+      renderStretches();
+    }
+    function renderStretches() {
+      const list = STRETCHES[state.stretchMode];
+      document.getElementById("stretchList").innerHTML = list.map(s => `
+        <label class="check-item ${state.checks[s.id] ? 'done' : ''}">
+          <input type="checkbox" ${state.checks[s.id] ? 'checked' : ''} onchange="toggleCheck('${s.id}')" />
+          <div><span><strong>${s.title}</strong><small>${s.sub}</small></span></div>
+        </label>
+      `).join("");
+    }
+    function updateSpaGate() {
+      const card = document.getElementById("spaGateCard");
+      const txt = document.getElementById("spaGateText");
+      if (state.coin === "heads") {
+        card.style.borderColor = "var(--gold)";
+        txt.innerHTML = "<strong style='color:var(--gold);'>🔓 UNLOCKED (Heads Day):</strong> Head to the front desk now for 10 minutes in the <strong>HydroMassage</strong> or <strong>Massage Chair</strong>. You earned the reward anchor!";
+      } else if (state.coin === "tails") {
+        card.style.borderColor = "var(--purple-light)";
+        txt.innerHTML = "<strong style='color:var(--purple-light);'>🔒 LOCKED (Tails Day):</strong> Skip the spa today, grab water, and head out. Skipping on Tails days keeps your brain craving the workout.";
+      } else {
+        card.style.borderColor = "var(--border)";
+        txt.textContent = "Flip your Front Desk Coin on the Launch tab to see if the HydroMassage / Massage Chair is unlocked today.";
+      }
+    }
+
+    // Progress & Copy
+    function renderHistory() {
+      const wrap = document.getElementById("historyList");
+      if (!state.logs.length) {
+        wrap.innerHTML = "<p class='sub'>No lifts logged yet. Log your first set on the Workout tab!</p>";
+        return;
+      }
+      wrap.innerHTML = state.logs.slice(0, 40).map(l => `
+        <div class="log-entry">
+          <div class="date">${l.date} • ${l.day}</div>
+          <strong>${l.exercise}</strong> — ${l.weight} lbs × ${l.reps} reps × ${l.sets} sets (${l.feel})
+        </div>
+      `).join("");
+    }
+    function copyLog() {
+      if (!state.logs.length) { toast("No logs to copy yet"); return; }
+      const text = state.logs.map(l => `${l.date} | ${l.exercise} — ${l.weight} lbs x ${l.reps} x ${l.sets} | ${l.feel}`).join("\n");
+      navigator.clipboard.writeText(text).then(() => toast("Copied! Paste into Apple Notes")).catch(() => toast("Copy failed"));
+    }
+
+    function resetToday() {
+      state.checks = {};
+      state.coin = null;
+      save();
+      renderCoin();
+      renderWarmups();
+      renderWorkout();
+      renderStretches();
+      updateSpaGate();
+      toast("Daily checklist reset (logs kept!)");
+    }
+
+    // Init
+    renderBuffer();
+    renderCoin();
+    renderWarmups();
+    selectDay(state.day);
+    setStretch(state.stretchMode);
+    updateSpaGate();
+  </script>
+</body>
+</html>
